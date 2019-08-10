@@ -4,7 +4,7 @@
 }
 
 #testInput {
-    width: 250px;
+    width: 400px;
 }
 
 /* Leave here */
@@ -22,7 +22,7 @@
 }
 
 .base-input.error {
-    border: 1px solid rgba(255, 0, 0, 0.5);
+    border: 1px solid rgba(255, 0, 0, 0.3);
 }
 
 .base-input.error.active {
@@ -41,4 +41,5 @@
     width: 80px;
     background-color: #eeeeee;
     text-align: center;
+    overflow: hidden;
 }

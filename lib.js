@@ -1,14 +1,6 @@
 'use strict';
 
 class BaseInput {
-
-
-}
-
-/*
-    NumericInput control
-*/
-class NumericInput {
     _value = null;
     _isValid = true;
 
@@ -76,14 +68,19 @@ class NumericInput {
                 }
     
                 this._inputElement.value = text;
-                const newValue = this._textToValue(text);
-                if (isNaN(newValue)) {
+                if (text === '') {
+                    this._value = null;
+                    this._isValid = true;
+                    break;
+                }
+
+                try {
+                    this._value = this._textToValue(text);
+                    this._isValid = true;
+                }
+                catch (ex) {
                     this._value = undefined;
                     this._isValid = false;
-                }
-                else {
-                    this._value = newValue;
-                    this._isValid = true;
                 }
                 break;
             }
@@ -110,10 +107,10 @@ class NumericInput {
     }
 
     // Converts given text to numeric value
-    _textToValue(text) {
-        return Number(text);
+    _textToValue() {
+        throw new Error('Not implemented');
     }
-
+    
     _addClass(currentClass, classToAdd) {
         const set = new Set(currentClass.split(/\s+/));
         set.add(classToAdd);
@@ -133,21 +130,145 @@ class NumericInput {
         );
     }
 
+}
 
+/*
+    NumericInput control
+*/
+class NumericInput extends BaseInput {
+    // Converts given text to numeric value
+    _textToValue(text) {
+        const val = Number(text);
+        if (isNaN(val)) {
+            throw new Error('Not a number');
+        }
+        return val;
+    }
 }
 
 /*
     CalcInput control
 */
 class CalcInput extends BaseInput {
+    _priorities = {
+        '+': 1,
+        '-': 1,
+        '*': 2,
+        '/': 2,
+    };
 
+    constructor(hostElement) {
+        super(hostElement);
+
+        this._resultElement = document.createElement('div');
+        this._resultElement.className = 'result-box';
+        this._frameElement.append(this._resultElement);
+    }
+
+    destroy() {
+        super.destroy();
+        this._priorities = null;
+        this._resultElement = null;
+    }
+
+    _update(args) {
+        super._update(args);
+        this._resultElement.innerText = this.isValid ? this.value : '?';
+    }
+
+    // Converts given text to numeric value
+    _textToValue(text) {
+        return this._calculate(text);
+    }
+    
+    // Recursive formula evaluation
+    _calculate(formula) {
+		let m = null;
+		let op = null;
+		formula = formula.trim();
+		if (/^$/.test(formula)) {
+			throw new Error('Missing operand');
+		}
+		// Literal number
+		else if (/^-?[0-9]*\.?[0-9]+$/.test(formula)) {
+			return Number(formula);
+		}
+		// Unary minus, -op
+		else if (m = /^-(.+)$/.exec(formula)) {
+			return (- this._calculate(m[1]));
+		}
+		// Simple expression, op1 + op2
+		else if ((op = this._findOperator(formula)) && op.operator) {
+			var operand1 = this._calculate(formula.substring(0, op.pos));
+			var operand2 = this._calculate(formula.substring(op.pos + op.operator.length));
+			switch (op.operator) {
+                case '+':
+                    return operand1 + operand2;
+                case '-':
+                    return operand1 - operand2;
+                case '*':
+                    return operand1 * operand2;
+                case '/':
+                    return operand1 / operand2;
+                default:
+                    throw new Error('Unsupported operator '+op.operator);
+            }
+		}
+		// Parenthesis ( )
+		else if (m = /^\((.*)\)$/.exec(formula)) {
+			return this._calculate(m[1]);
+		}
+		else {
+			throw new Error('Formula syntax error');
+		}
+    }
+    
+    // Locate operator in given formula
+    _findOperator(formula) {
+		let op = {
+			operator: '',
+			pos: null,
+			prio: 100
+		};
+        let parenthesis = 0, m = null;
+        
+		for (let i = 0; i < formula.length; i++) {
+			if (formula.charAt(i) == '(') {
+				parenthesis++;
+			}
+			else if (formula.charAt(i) == ')') {
+				if (parenthesis == 0) {
+					throw new Error('Extra closing bracket');
+				}
+				parenthesis--;
+			}
+			else if ((parenthesis == 0) && 
+				(m = /^(\+|-|\*|\/|)/.exec(formula.substring(i, i+2)))
+			) {
+				let new_prio = this._priorities[ m[1]];
+				if (new_prio != undefined && new_prio <= op.prio) {
+					op.operator = m[1];
+					op.pos = i;
+					op.prio = new_prio;
+					i += op.operator.length - 1;
+				}
+			}
+		}
+		if (parenthesis != 0) {
+			throw new Error('Extra opening bracket');
+		} 
+		return op;
+	}
+
+
+    
 }
 
 
 // Application entry point
 document.addEventListener('DOMContentLoaded', () => {
 
-    const control = new NumericInput('testInput');
+    const control = new CalcInput('testInput');
     console.log(control);
 
 

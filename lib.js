@@ -1,16 +1,54 @@
 'use strict';
 
 /*
+    Helper class for event handlers
+*/
+class EventObserver {
+    constructor() {
+        this.handlers = [];
+    }
+
+    destroy() {
+        this.handlers = null;
+    }
+
+    // Subscribe to this event
+    on(callback) {
+        this.handlers.push(callback);
+    }
+
+    // Unsubscribe from this event
+    off(callback) {
+        this.handlers = this.handlers.filter(cb => cb !== callback);
+    }
+
+    // Fire all registered callbacks
+    trigger(data) {
+        this.handlers.forEach(cb => cb(data));
+    }
+}
+
+/*
     NumericInput control
 */
 class NumericInput {
-    _value = null;
-    _text = '';
-    _isValid = true;
-
     constructor(hostElement) {
+        // Data properties
+        this._value = null;
+        this._text = '';
+        this._isValid = true;
+
+        // Event observers
+        this.valueChanged = new EventObserver();
+        this.textChanged = new EventObserver();
+        this.isValidChanged = new EventObserver();
+    
+        // Host element
         this._hostElement = (typeof hostElement === 'string') ?
             document.getElementById(hostElement) : hostElement;
+        if (!this._hostElement) {
+            throw new Error('Host element not found');
+        }
 
         // Outer frame
         this._frameElement = document.createElement('div');
@@ -37,7 +75,12 @@ class NumericInput {
         this._frameElement.remove();
         this._inputElement.remove();
 
+        this.valueChanged.destroy();
+        this.textChanged.destroy();
+        this.isValidChanged.destroy();
+
         this._value = this._text = null;
+        this.valueChanged = this.textChanged = this.isValidChanged = null;
         this._hostElement = this._frameElement = this._inputElement = null;
     }
 
@@ -112,15 +155,16 @@ class NumericInput {
     */
     _update(changes) {
         Object.keys(changes).forEach(field => {
-            if (changes[field] !== this[`_${field}`]) {
-                // Update this field
-                this[`_${field}`] = changes[field];
+            const newValue = changes[field];
+            if (newValue !== this[`_${field}`]) {
+                // Update property value
+                this[`_${field}`] = newValue;
                 if (field === 'text') {
-                    this._inputElement.value = changes[field];
+                    this._inputElement.value = newValue;
                 } 
 
                 // Fire event handlers
-                // TODO
+                this[`${field}Changed`] && this[`${field}Changed`].trigger(newValue);
             }
         });
 
@@ -168,15 +212,14 @@ class NumericInput {
     CalcInput control
 */
 class CalcInput extends NumericInput {
-    _priorities = {
-        '+': 1,
-        '-': 1,
-        '*': 2,
-        '/': 2,
-    };
-
     constructor(hostElement) {
         super(hostElement);
+        this._priorities = {
+            '+': 1,
+            '-': 1,
+            '*': 2,
+            '/': 2,
+        };
 
         this._resultElement = document.createElement('div');
         this._resultElement.className = 'result-box';
@@ -263,8 +306,8 @@ class CalcInput extends NumericInput {
 			else if ((parenthesis == 0) && 
 				(m = /^(\+|-|\*|\/|)/.exec(formula.substring(i, i+2)))
 			) {
-				let new_prio = this._priorities[ m[1]];
-				if (new_prio != undefined && new_prio <= op.prio) {
+				let new_prio = this._priorities[m[1]];
+				if (new_prio !== undefined && new_prio <= op.prio) {
 					op.operator = m[1];
 					op.pos = i;
 					op.prio = new_prio;
@@ -277,17 +320,4 @@ class CalcInput extends NumericInput {
 		} 
 		return op;
 	}
-
-
-    
 }
-
-
-// Application entry point
-document.addEventListener('DOMContentLoaded', () => {
-
-    const control = new CalcInput('testInput');
-    console.log(control);
-
-
-});

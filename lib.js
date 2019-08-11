@@ -172,11 +172,6 @@ class NumericInput {
         this._changeTopLevelClass('error', !this.isValid);
     }
 
-    // Converts given text to numeric value
-    _textToValue() {
-        throw new Error('Not implemented');
-    }
-    
     _addClass(currentClass, classToAdd) {
         const set = new Set(currentClass.split(/\s+/));
         set.add(classToAdd);
@@ -237,8 +232,10 @@ class CalcInput extends NumericInput {
         this._resultElement.innerText = this.isValid ? this.value : '?';
     }
 
-    // Converts given text to numeric value
-    _textToValue(text) {
+    /*  Converts given text to numeric value
+        Returns a number or throws an exception
+    */
+   _textToValue(text) {
         return this._calculate(text);
     }
     

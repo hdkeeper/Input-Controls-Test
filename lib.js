@@ -244,25 +244,25 @@ class CalcInput extends NumericInput {
     
     // Recursive formula evaluation
     _calculate(formula) {
-		let m = null;
-		let op = null;
-		formula = formula.trim();
-		if (formula === '') {
-			throw new Error('Missing operand');
-		}
-		// Literal number
-		else if (/^-?[0-9]*\.?[0-9]+$/.test(formula)) {
-			return Number(formula);
-		}
-		// Unary minus, -op
-		else if (m = /^-(.+)$/.exec(formula)) {
-			return (- this._calculate(m[1]));
-		}
-		// Simple expression, op1 + op2
-		else if ((op = this._findOperator(formula)) && op.operator) {
-			var operand1 = this._calculate(formula.substring(0, op.pos));
-			var operand2 = this._calculate(formula.substring(op.pos + op.operator.length));
-			switch (op.operator) {
+        let m = null;
+        let op = null;
+        formula = formula.trim();
+        if (formula === '') {
+            throw new Error('Missing operand');
+        }
+        // Literal number
+        else if (/^-?[0-9]*\.?[0-9]+$/.test(formula)) {
+            return Number(formula);
+        }
+        // Unary minus, -op
+        else if (m = /^-(.+)$/.exec(formula)) {
+            return (- this._calculate(m[1]));
+        }
+        // Simple expression, op1 + op2
+        else if ((op = this._findOperator(formula)) && op.operator) {
+            var operand1 = this._calculate(formula.substring(0, op.pos));
+            var operand2 = this._calculate(formula.substring(op.pos + op.operator.length));
+            switch (op.operator) {
                 case '+':
                     return operand1 + operand2;
                 case '-':
@@ -272,52 +272,52 @@ class CalcInput extends NumericInput {
                 case '/':
                     return operand1 / operand2;
                 default:
-                    throw new Error('Unsupported operator '+op.operator);
+                    throw new Error('Unsupported operator ' + op.operator);
             }
-		}
-		// Parenthesis ( )
-		else if (m = /^\((.*)\)$/.exec(formula)) {
-			return this._calculate(m[1]);
-		}
-		else {
-			throw new Error('Formula syntax error');
-		}
+        }
+        // Parenthesis ( )
+        else if (m = /^\((.*)\)$/.exec(formula)) {
+            return this._calculate(m[1]);
+        }
+        else {
+            throw new Error('Formula syntax error');
+        }
     }
-    
+
     // Locate operator in given formula
     _findOperator(formula) {
-		let op = {
-			operator: '',
-			pos: null,
-			prio: 100
-		};
+        let op = {
+            operator: '',
+            pos: null,
+            prio: 100
+        };
         let parenthesis = 0, m = null;
-        
-		for (let i = 0; i < formula.length; i++) {
-			if (formula.charAt(i) == '(') {
-				parenthesis++;
-			}
-			else if (formula.charAt(i) == ')') {
-				if (parenthesis == 0) {
-					throw new Error('Extra closing bracket');
-				}
-				parenthesis--;
-			}
-			else if ((parenthesis == 0) && 
-				(m = /^(\+|-|\*|\/|)/.exec(formula.substring(i, i+1)))
-			) {
-				let new_prio = this._priorities[m[1]];
-				if (new_prio !== undefined && new_prio <= op.prio) {
-					op.operator = m[1];
-					op.pos = i;
-					op.prio = new_prio;
-					i += op.operator.length - 1;
-				}
-			}
-		}
-		if (parenthesis != 0) {
-			throw new Error('Extra opening bracket');
-		} 
-		return op;
-	}
+
+        for (let i = 0; i < formula.length; i++) {
+            if (formula.charAt(i) == '(') {
+                parenthesis++;
+            }
+            else if (formula.charAt(i) == ')') {
+                if (parenthesis == 0) {
+                    throw new Error('Extra closing bracket');
+                }
+                parenthesis--;
+            }
+            else if ((parenthesis == 0) &&
+                (m = /^(\+|-|\*|\/|)/.exec(formula.substring(i, i + 1)))
+            ) {
+                let new_prio = this._priorities[m[1]];
+                if (new_prio !== undefined && new_prio <= op.prio) {
+                    op.operator = m[1];
+                    op.pos = i;
+                    op.prio = new_prio;
+                    i += op.operator.length - 1;
+                }
+            }
+        }
+        if (parenthesis != 0) {
+            throw new Error('Extra opening bracket');
+        }
+        return op;
+    }
 }

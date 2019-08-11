@@ -1,7 +1,11 @@
 'use strict';
 
-class BaseInput {
+/*
+    NumericInput control
+*/
+class NumericInput {
     _value = null;
+    _text = '';
     _isValid = true;
 
     constructor(hostElement) {
@@ -59,6 +63,7 @@ class BaseInput {
         return this._hostElement;
     }
 
+    // FIXME
     _update({ text, value }) {
         do {
             if (text !== undefined) {
@@ -106,6 +111,10 @@ class BaseInput {
         this._changeTopLevelClass('error', !this.isValid);
     }
 
+    _applyChanges(changes) {
+        
+    }
+
     // Converts given text to numeric value
     _textToValue() {
         throw new Error('Not implemented');
@@ -130,13 +139,8 @@ class BaseInput {
         );
     }
 
-}
-
-/*
-    NumericInput control
-*/
-class NumericInput extends BaseInput {
     // Converts given text to numeric value
+    // Returns a number or throws an exception
     _textToValue(text) {
         const val = Number(text);
         if (isNaN(val)) {
@@ -149,7 +153,7 @@ class NumericInput extends BaseInput {
 /*
     CalcInput control
 */
-class CalcInput extends BaseInput {
+class CalcInput extends NumericInput {
     _priorities = {
         '+': 1,
         '-': 1,
@@ -186,7 +190,7 @@ class CalcInput extends BaseInput {
 		let m = null;
 		let op = null;
 		formula = formula.trim();
-		if (/^$/.test(formula)) {
+		if (formula === '') {
 			throw new Error('Missing operand');
 		}
 		// Literal number

@@ -24,7 +24,7 @@ class NumericInput {
 
         // Event handlers
         this._inputElement.addEventListener('input',
-            event => this._update({ text: event.target.value }));
+            event => this.text = event.target.value);
         this._inputElement.addEventListener('focus',
             () => this._changeTopLevelClass('active', true));
         this._inputElement.addEventListener('blur',
@@ -35,7 +35,7 @@ class NumericInput {
 
     destroy() {
         this._frameElement.remove();
-        this._value = null;
+        this._value = this._text = null;
         this._hostElement = this._frameElement = this._inputElement = null;
     }
 
@@ -44,7 +44,23 @@ class NumericInput {
     }
 
     set value(value) {
-        this._update({ value });
+        if (value === null || value === undefined) {
+            return this._update({
+                value: null,
+                text: '',
+                isValid: true
+            });
+        }
+
+        if (typeof value !== 'number') {
+            throw new TypeError(`Property 'value' should be a number`);
+        }
+
+        this._update({
+            value,
+            text: String(value),
+            isValid: true
+        });
     }
 
     get text() {
@@ -52,7 +68,33 @@ class NumericInput {
     }
 
     set text(text) {
-        this._update({ text });
+        if (typeof text !== 'string') {
+            throw new TypeError(`Property 'text' should be a string`);
+        }
+
+        this._inputElement.value = text;
+        if (text === '') {
+            return this._update({
+                value: null,
+                text,
+                isValid: true
+            });
+        }
+
+        try {
+            this._update({
+                value: this._textToValue(text),
+                text,
+                isValid: true
+            });
+        }
+        catch (ex) {
+            this._update({
+                value: undefined,
+                text,
+                isValid: false
+            });
+        }
     }
 
     get isValid() {
@@ -63,56 +105,26 @@ class NumericInput {
         return this._hostElement;
     }
 
-    // FIXME
-    _update({ text, value }) {
-        do {
-            if (text !== undefined) {
-                // Update text property
-                if (typeof text !== 'string') {
-                    throw new TypeError(`Property 'text' should be a string`);
-                }
-    
-                this._inputElement.value = text;
-                if (text === '') {
-                    this._value = null;
-                    this._isValid = true;
-                    break;
-                }
+    /*  Update control state 
+        'changes' is an object with fields { value, text, isValid }
+        Every field is optional
+    */
+    _update(changes) {
+        Object.keys(changes).forEach(field => {
+            if (changes[field] !== this[`_${field}`]) {
+                // Update this field
+                this[`_${field}`] = changes[field];
+                if (field === 'text') {
+                    this._inputElement.value = changes[field];
+                } 
 
-                try {
-                    this._value = this._textToValue(text);
-                    this._isValid = true;
-                }
-                catch (ex) {
-                    this._value = undefined;
-                    this._isValid = false;
-                }
-                break;
+                // Fire event handlers
+                // TODO
             }
-    
-            // Update value property
-            if (value === null || value === undefined) {
-                this._value = null;
-                this._isValid = true;
-                this._inputElement.value = '';
-                break;
-            }
-    
-            if (typeof value !== 'number') {
-                throw new TypeError(`Property 'value' should be a number`);
-            }
-    
-            this._value = value;
-            this._isValid = true;
-            this._inputElement.value = String(value);
-        } while (false);
+        });
 
         // Update frame class
         this._changeTopLevelClass('error', !this.isValid);
-    }
-
-    _applyChanges(changes) {
-        
     }
 
     // Converts given text to numeric value
@@ -139,8 +151,9 @@ class NumericInput {
         );
     }
 
-    // Converts given text to numeric value
-    // Returns a number or throws an exception
+    /*  Converts given text to numeric value
+        Returns a number or throws an exception
+    */
     _textToValue(text) {
         const val = Number(text);
         if (isNaN(val)) {
@@ -175,8 +188,8 @@ class CalcInput extends NumericInput {
         this._resultElement = null;
     }
 
-    _update(args) {
-        super._update(args);
+    _update(changes) {
+        super._update(changes);
         this._resultElement.innerText = this.isValid ? this.value : '?';
     }
 

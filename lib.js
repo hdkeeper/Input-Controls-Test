@@ -26,7 +26,8 @@ class EventObserver {
     trigger(data) {
         this.handlers.forEach(cb => cb(data));
     }
-}
+
+} // class EventObserver
 
 /*
     NumericInput control
@@ -172,6 +173,17 @@ class NumericInput {
         this._changeTopLevelClass('error', !this.isValid);
     }
 
+    /*  Converts given text to numeric value
+        Returns a number or throws an exception
+    */
+   _textToValue(text) {
+        const val = Number(text);
+        if (isNaN(val)) {
+            throw new Error('Not a number');
+        }
+        return val;
+    }
+
     _addClass(currentClass, classToAdd) {
         const set = new Set(currentClass.split(/\s+/));
         set.add(classToAdd);
@@ -191,17 +203,7 @@ class NumericInput {
         );
     }
 
-    /*  Converts given text to numeric value
-        Returns a number or throws an exception
-    */
-    _textToValue(text) {
-        const val = Number(text);
-        if (isNaN(val)) {
-            throw new Error('Not a number');
-        }
-        return val;
-    }
-}
+} // class NumericInput
 
 /*
     CalcInput control
@@ -317,4 +319,5 @@ class CalcInput extends NumericInput {
         }
         return op;
     }
-}
+
+} // class CalcInput

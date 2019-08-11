@@ -10,12 +10,12 @@ $(document).ready(() => {
         const $b = $(blockSelector);
 
         // Initial values
-        $b.find('.value-display').text(control.value);
+        $b.find('.value-display').text(String(control.value));
         $b.find('.text-display').text(control.text || '""');
         $b.find('.valid-display').text(control.isValid);
         
         // Update values via events
-        control.valueChanged.on(value => $b.find('.value-display').text(value));
+        control.valueChanged.on(value => $b.find('.value-display').text(String(value)));
         control.textChanged.on(value => $b.find('.text-display').text(value || '""'));
         control.isValidChanged.on(value => $b.find('.valid-display').text(value));
     

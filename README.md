@@ -1,6 +1,9 @@
 # Input Controls Test
 
-For task description, see [InputControlsTest.docx](InputControlsTest.docx).
+The task is to create a control library comprising two web controls (widgets) –
+NumericInput and CalcInput. 
+
+For details, see [InputControlsTest.docx](InputControlsTest.docx).
 
 ## Quick start
 

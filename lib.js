@@ -164,7 +164,7 @@ class NumericInput {
                 } 
 
                 // Fire event handlers
-                this[`${field}Changed`] && this[`${field}Changed`].trigger(newValue);
+                this[`${field}Changed`].trigger(newValue);
             }
         });
 
@@ -304,7 +304,7 @@ class CalcInput extends NumericInput {
 				parenthesis--;
 			}
 			else if ((parenthesis == 0) && 
-				(m = /^(\+|-|\*|\/|)/.exec(formula.substring(i, i+2)))
+				(m = /^(\+|-|\*|\/|)/.exec(formula.substring(i, i+1)))
 			) {
 				let new_prio = this._priorities[m[1]];
 				if (new_prio !== undefined && new_prio <= op.prio) {

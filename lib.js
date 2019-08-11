@@ -35,6 +35,8 @@ class NumericInput {
 
     destroy() {
         this._frameElement.remove();
+        this._inputElement.remove();
+
         this._value = this._text = null;
         this._hostElement = this._frameElement = this._inputElement = null;
     }
@@ -64,7 +66,7 @@ class NumericInput {
     }
 
     get text() {
-        return this._inputElement.value;
+        return this._text;
     }
 
     set text(text) {
@@ -72,7 +74,6 @@ class NumericInput {
             throw new TypeError(`Property 'text' should be a string`);
         }
 
-        this._inputElement.value = text;
         if (text === '') {
             return this._update({
                 value: null,
